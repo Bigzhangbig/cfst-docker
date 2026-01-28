@@ -2,8 +2,16 @@
 set -e
 
 REPO="XIU2/CloudflareSpeedTest"
-ARCH="amd64" # Default to amd64 for this project
 
+# Detect architecture
+ARCH_RAW=$(uname -m)
+case "$ARCH_RAW" in
+    x86_64)  ARCH="amd64" ;;
+    aarch64) ARCH="arm64" ;;
+    *)       echo "Unsupported architecture: $ARCH_RAW"; exit 1 ;;
+esac
+
+echo "Detected architecture: $ARCH"
 echo "Fetching latest release for $REPO..."
 LATEST_TAG=$(curl --retry 5 -s "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name')
 
@@ -14,7 +22,7 @@ fi
 
 echo "Latest tag: $LATEST_TAG"
 
-DOWNLOAD_URL="https://github.boki.moe/https://github.com/$REPO/releases/download/$LATEST_TAG/cfst_linux_$ARCH.tar.gz"
+DOWNLOAD_URL="https://github.com/$REPO/releases/download/$LATEST_TAG/cfst_linux_$ARCH.tar.gz"
 
 echo "Downloading from $DOWNLOAD_URL..."
 curl --retry 5 -L "$DOWNLOAD_URL" -o cfst.tar.gz

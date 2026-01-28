@@ -18,8 +18,8 @@ export PATH="$(pwd)/mock_bin:$PATH"
 echo "Testing defaults..."
 bash "$ENTRYPOINT" > /dev/null 2>&1
 # Check ARGS in speedtest.log
-if ! grep -q "ARGS:.*-n 20" speedtest.log; then
-    echo "FAILED: Default -n 20 not found in speedtest.log"
+if ! grep -q "ARGS:.*-n 500" speedtest.log; then
+    echo "FAILED: Default -n 500 not found in speedtest.log"
     exit 1
 fi
 if ! grep -q "ARGS:.*-dn 20" speedtest.log; then

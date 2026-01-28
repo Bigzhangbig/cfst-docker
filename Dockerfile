@@ -10,13 +10,18 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Install CloudflareSpeedTest (Local copy for stability during dev)
-COPY cfst /usr/local/bin/CloudflareSpeedTest
-RUN chmod +x /usr/local/bin/CloudflareSpeedTest
+# Install CloudflareSpeedTest from GitHub
+COPY scripts/install_cfst.sh /tmp/install_cfst.sh
+RUN chmod +x /tmp/install_cfst.sh && /tmp/install_cfst.sh && rm /tmp/install_cfst.sh
+
+# Copy IP data files
 COPY ip.txt ipv6.txt /app/
 
+# Copy entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Create data directory for volume mounting
+RUN mkdir -p /app/data
 
+ENTRYPOINT ["/app/entrypoint.sh"]

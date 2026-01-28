@@ -33,11 +33,11 @@ mkdir -p "$DATA_DIR"
 RESULT_FILE="$DATA_DIR/result.csv"
 
 # Parameters with defaults
-# CF_N: 测速数量 (default: 20)
+# CF_N: 测速数量 (default: 500)
 # CF_T: 测试线程 (default: 4)
 # CF_DN: 下载测试数量 (default: 20)
 # CF_URL: 自定义测速地址
-N=${CF_N:-20}
+N=${CF_N:-500}
 T=${CF_T:-4}
 DN=${CF_DN:-20}
 URL=${CF_URL:-""}
@@ -116,8 +116,9 @@ if [ -f "$RESULT_FILE" ]; then
     BEST_RESULT=$(sed -n '2p' "$RESULT_FILE")
     
     if [ -n "$BEST_RESULT" ]; then
-        IFS=',' read -r IP PORT DC PING DL UP <<< "$BEST_RESULT"
-        SUMMARY="IP: $IP ($DC), Ping: ${PING}ms, DL: ${DL}MB/s, UL: ${UP}MB/s"
+        # CSV Format: IP, Sent, Recv, LossRate, AvgLatency, Speed, Region
+        IFS=',' read -r IP SENT RECV LOSS PING DL REGION <<< "$BEST_RESULT"
+        SUMMARY="IP: $IP ($REGION), Ping: ${PING}ms, DL: ${DL}MB/s"
         log_info "Best Result: $SUMMARY"
         
         # Upload to Gist if credentials provided
