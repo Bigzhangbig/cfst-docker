@@ -2,14 +2,14 @@
 
 此计划概述了创建单次运行 Docker 镜像以进行 Cloudflare 测速并上传至 Gist 的步骤。
 
-## 阶段 1：基础环境与依赖设置
+## 阶段 1：基础环境与依赖设置 [checkpoint: f4292d4]
 - [x] 任务：初始化项目结构并准备基础 Dockerfile (868ba82)
     - [x] 创建 `Dockerfile` (基于 Alpine)
     - [x] 添加基础依赖 (curl, jq 等)
 - [x] 任务：集成 CloudflareSpeedTest 二进制文件 (5b7da94)
     - [x] 编写脚本自动获取最新版本的 `CloudflareSpeedTest`
     - [x] 在 `Dockerfile` 中完成二进制文件的集成与权限设置
-- [ ] 任务：Conductor - 用户手动验证 '阶段 1：基础环境与依赖设置' (协议在 workflow.md 中)
+- [x] 任务：Conductor - 用户手动验证 '阶段 1：基础环境与依赖设置' (f4292d4)
 
 ## 阶段 2：核心脚本开发 (TDD 驱动)
 - [ ] 任务：开发带日志功能的包装脚本 `entrypoint.sh`
