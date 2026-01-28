@@ -85,14 +85,18 @@ if command -v CloudflareSpeedTest > /dev/null; then
     # Monitor progress every 5 seconds
     while kill -0 $CFST_PID 2>/dev/null; do
         # Extract the latest line containing "可用:"
-        # We use 'tr' to handle carriage returns (\r) which are common in progress bars
-        PROGRESS=$(tr '\r' '\n' < "$LOG_FILE" | grep "可用:" | tail -n 1)
+        # Use tail -c to read from end of file for efficiency if it gets large
+        # We need to handle the \r and ANSI codes from the original progress bar
+        PROGRESS=$(tr '\r' '\n' < "$LOG_FILE" | grep "可用:" | tail -n 1 | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+        
         if [ -n "$PROGRESS" ]; then
-            # Print the progress line, trimming it to avoid terminal mess
-            echo -e "[PROGRESS] ${PROGRESS}"
+            # Use \r to overwrite the line and -n to stay on the same line
+            printf "\r[PROGRESS] %-80s" "${PROGRESS}"
         fi
         sleep 5
     done
+    # Print a newline after monitoring is done to clear the printf line
+    echo ""
 
     wait $CFST_PID
     EXIT_CODE=$?
