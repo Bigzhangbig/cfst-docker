@@ -11,8 +11,8 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Install CloudflareSpeedTest from GitHub
-COPY scripts/install_cfst.sh /tmp/install_cfst.sh
-RUN chmod +x /tmp/install_cfst.sh && /tmp/install_cfst.sh && rm /tmp/install_cfst.sh
+COPY scripts/install_cfst.sh scripts/get_version.sh /tmp/
+RUN chmod +x /tmp/install_cfst.sh /tmp/get_version.sh && /tmp/install_cfst.sh && rm /tmp/install_cfst.sh /tmp/get_version.sh
 
 # Copy IP data files
 COPY ip.txt ipv6.txt /app/
