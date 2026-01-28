@@ -50,7 +50,7 @@ GIST_ID=你的Gist_ID
 | `CF_HTTPING_CODE` | `-httping-code` | HTTPing 时的有效状态码 | `200,301,302` |
 | `CF_COLO` | `-cfcolo` | 匹配指定地区 (如 `HKG,SJC`) | 所有地区 |
 | **过滤参数** | | | |
-| `CF_TL` | `-tl` | 平均延迟上限 (ms) | `9999` |
+| `CF_TL` | `-tl` | 平均延迟上限 (ms) | `1000` |
 | `CF_TLL` | `-tll` | 平均延迟下限 (ms) | `0` |
 | `CF_TLR` | `-tlr` | 丢包率上限 (0.00-1.00) | `1.00` |
 | `CF_SL` | `-sl` | 下载速度下限 (MB/s) | `0.00` |
