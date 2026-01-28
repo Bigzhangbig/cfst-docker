@@ -8,13 +8,8 @@
 - [x] 任务：Conductor - 用户手动验证 '阶段 1：版本提取脚本与环境准备' (f2db129)
 
 ## 阶段 2：GitHub Action 工作流实现
-- [ ] 任务：编写 Docker 构建工作流文件。
-    - [ ] 创建 `.github/workflows/docker-publish.yml`。
-    - [ ] 实现 QEMU 和 Buildx 的初始化步骤。
-    - [ ] 配置 Docker 登录（GHCR）和元数据提取。
-- [ ] 任务：实现智能标签逻辑。
-    - [ ] 在工作流中集成版本号提取。
-    - [ ] 实现 `vX.X.X-Y` 格式的标签生成。
+- [x] 任务：编写 Docker 构建工作流文件。 (44e7131)
+- [x] 任务：实现智能标签逻辑。 (44e7131)
 - [ ] 任务：Conductor - 用户手动验证 '阶段 2：GitHub Action 工作流实现' (协议在 workflow.md 中)
 
 ## 阶段 3：多平台构建与发布验证
