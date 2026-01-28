@@ -16,10 +16,10 @@ export PATH="$(pwd)/mock_bin:$PATH"
 
 # Test 1: Default values (no env vars set)
 echo "Testing defaults..."
-OUTPUT_DEFAULT=$(bash "$ENTRYPOINT" 2>&1)
-# We expect some default args, e.g., -n 20 -t 4
-if ! echo "$OUTPUT_DEFAULT" | grep -q "ARGS:.*-n 20"; then
-    echo "FAILED: Default -n 20 not found"
+bash "$ENTRYPOINT" > /dev/null 2>&1
+# Check ARGS in speedtest.log
+if ! grep -q "ARGS:.*-n 20" speedtest.log; then
+    echo "FAILED: Default -n 20 not found in speedtest.log"
     exit 1
 fi
 
@@ -29,21 +29,35 @@ export CF_N=500
 export CF_T=10
 export CF_HTTPING=true
 export CF_SL=5.5
-OUTPUT_OVERRIDE=$(bash "$ENTRYPOINT" 2>&1)
-if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-n 500"; then
+bash "$ENTRYPOINT" > /dev/null 2>&1
+if ! grep -q "ARGS:.*-n 500" speedtest.log; then
     echo "FAILED: Override -n 500 not found"
     exit 1
 fi
-if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-t 10"; then
+if ! grep -q "ARGS:.*-t 10" speedtest.log; then
     echo "FAILED: Override -t 10 not found"
     exit 1
 fi
-if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-httping"; then
+if ! grep -q "ARGS:.*-httping" speedtest.log; then
     echo "FAILED: Override -httping not found"
     exit 1
 fi
-if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-sl 5.5"; then
+if ! grep -q "ARGS:.*-sl 5.5" speedtest.log; then
     echo "FAILED: Override -sl 5.5 not found"
+    exit 1
+fi
+
+# Test 3: Port and Threshold
+echo "Testing port and latency threshold..."
+export CF_TP=2096
+export CF_TL=500
+bash "$ENTRYPOINT" > /dev/null 2>&1
+if ! grep -q "ARGS:.*-tp 2096" speedtest.log; then
+    echo "FAILED: Override -tp 2096 not found"
+    exit 1
+fi
+if ! grep -q "ARGS:.*-tl 500" speedtest.log; then
+    echo "FAILED: Override -tl 500 not found"
     exit 1
 fi
 

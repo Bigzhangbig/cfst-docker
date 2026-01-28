@@ -77,10 +77,29 @@ OPTS="-n $N -t $T -dn $DN"
 if command -v CloudflareSpeedTest > /dev/null; then
     log_info "Executing CloudflareSpeedTest with options: $OPTS"
     log_info "Running speed test, please wait (detailed logs in $LOG_FILE)..."
-    # Specify output file in data directory and redirect stdout/stderr to log file
-    if ! CloudflareSpeedTest $OPTS -o "$RESULT_FILE" >> "$LOG_FILE" 2>&1; then
-        log_error "CloudflareSpeedTest failed. Check $LOG_FILE for details."
-        exit 1
+    
+    # Run in background and redirect all output to log file
+    CloudflareSpeedTest $OPTS -o "$RESULT_FILE" >> "$LOG_FILE" 2>&1 &
+    CFST_PID=$!
+
+    # Monitor progress every 5 seconds
+    while kill -0 $CFST_PID 2>/dev/null; do
+        # Extract the latest line containing "可用:"
+        # We use 'tr' to handle carriage returns (\r) which are common in progress bars
+        PROGRESS=$(tr '\r' '\n' < "$LOG_FILE" | grep "可用:" | tail -n 1)
+        if [ -n "$PROGRESS" ]; then
+            # Print the progress line, trimming it to avoid terminal mess
+            echo -e "[PROGRESS] ${PROGRESS}"
+        fi
+        sleep 5
+    done
+
+    wait $CFST_PID
+    EXIT_CODE=$?
+
+    if [ $EXIT_CODE -ne 0 ]; then
+        log_error "CloudflareSpeedTest failed (Exit Code: $EXIT_CODE). Check $LOG_FILE for details."
+        exit $EXIT_CODE
     fi
 else
     log_error "CloudflareSpeedTest binary not found in PATH"
