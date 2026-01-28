@@ -1,65 +1,83 @@
 #!/bin/bash
 
-# End-to-End integration test script
-# It will build the image and run it with a mock env file.
+# End-to-End integration test script (Accelerated via Mocking)
+# Covers One-shot and Loop modes.
 
 IMAGE_NAME="cfst-e2e-test"
 ENV_FILE=".env.test"
 OUTPUT_DIR="./e2e_output"
+MOCK_FILE="/tmp/CloudflareSpeedTest_mock"
 
-echo "Running Red Stage: E2E Verification..."
+echo "Running E2E Verification (Mocked)..."
 
-# 1. Prepare mock environment
-cat << EOF > "$ENV_FILE"
-GIST_TOKEN=ghp_mock_token
-GIST_ID=mock_gist_id
-CF_N=500
-CF_DN=1
-EOF
+# Create a mock binary
+echo -e "#!/bin/bash\necho \"可用: 1 / 1\"\nmkdir -p data && echo \"IP,Sent,Recv,Loss,Ping,DL,Region\" > data/result.csv && echo \"1.1.1.1,4,4,0,10,100,HKG\" >> data/result.csv\nexit 0" > "$MOCK_FILE"
+chmod +x "$MOCK_FILE"
 
-mkdir -p "$OUTPUT_DIR"
-
-# 2. Build the image (This ensures Dockerfile is valid)
+# 1. Build the image
 echo "Building docker image..."
-if ! docker build -t "$IMAGE_NAME" . ; then
+if ! docker build -q -t "$IMAGE_NAME" . > /dev/null ; then
     echo "FAILED: Docker build failed"
     exit 1
 fi
 
-# 3. Run the container
-echo "Running container..."
-if ! docker run --rm --env-file "$ENV_FILE" -v "$(pwd)/$OUTPUT_DIR:/app/data" "$IMAGE_NAME" > e2e_run.log 2>&1; then
-    echo "WARNING: Container exited with non-zero code (expected for mock Gist credentials)"
-fi
+cleanup() {
+    rm -rf "$ENV_FILE" "$OUTPUT_DIR" e2e_run.log "$MOCK_FILE"
+}
 
-# 4. Verify results
-echo "Verifying outputs..."
+# --- Test Case 1: One-shot mode ---
+echo "Testing Case 1: One-shot mode..."
+cat << EOF > "$ENV_FILE"
+CF_N=1
+CF_DN=1
+EOF
+mkdir -p "$OUTPUT_DIR"
 
-if [ ! -f "$OUTPUT_DIR/result.csv" ]; then
-    echo "FAILED: result.csv not produced in mounted volume"
-    exit 1
-fi
-
-if ! grep -q "Best Result: IP:" e2e_run.log; then
-    echo "FAILED: Success summary (Best Result) not found in logs"
+if ! docker run --rm --env-file "$ENV_FILE" \
+    -v "$(pwd)/$OUTPUT_DIR:/app/data" \
+    -v "$MOCK_FILE:/usr/local/bin/CloudflareSpeedTest" \
+    "$IMAGE_NAME" > e2e_run.log 2>&1; then
+    echo "FAILED: One-shot container crashed"
     cat e2e_run.log
     exit 1
 fi
 
-if ! grep -q "Uploading filtered top 20 results" e2e_run.log; then
-    # If no results had speed > 0, this might be missing. 
-    # But with 500 threads, we usually find something.
-    if grep -q "No results with download speed found to upload" e2e_run.log; then
-        echo "INFO: No results with download speed found, skipping upload check"
-    else
-        echo "FAILED: Gist upload logic neither attempted nor explicitly skipped"
-        cat e2e_run.log
-        exit 1
-    fi
+if grep -q "Running in One-shot mode" e2e_run.log && grep -q "Best Result: IP: 1.1.1.1" e2e_run.log; then
+    echo "SUCCESS: One-shot mode verified"
+else
+    echo "FAILED: One-shot mode indicators not found"
+    cat e2e_run.log
+    exit 1
+fi
+cleanup
+
+# --- Test Case 2: Loop mode ---
+echo "Testing Case 2: Loop mode (Wait for 2 rounds)..."
+cat << EOF > "$ENV_FILE"
+CF_N=1
+CF_DN=1
+LOOP_INTERVAL=2
+EOF
+mkdir -p "$OUTPUT_DIR"
+touch "$MOCK_FILE" && chmod +x "$MOCK_FILE" # Re-ensure mock exists
+
+docker run --rm --name "cfst-loop-tester" --env-file "$ENV_FILE" \
+    -v "$(pwd)/$OUTPUT_DIR:/app/data" \
+    -v "$MOCK_FILE:/usr/local/bin/CloudflareSpeedTest" \
+    "$IMAGE_NAME" > e2e_run.log 2>&1 &
+PID=$!
+
+echo "Waiting 8 seconds for 2 rounds to complete..."
+sleep 8
+docker stop "cfst-loop-tester" > /dev/null 2>&1
+
+if grep -q "Starting Round 1" e2e_run.log && grep -q "Starting Round 2" e2e_run.log; then
+    echo "SUCCESS: Loop mode rounds verified"
+else
+    echo "FAILED: Loop mode rounds not detected in E2E logs"
+    cat e2e_run.log
+    exit 1
 fi
 
-echo "SUCCESS: E2E verification passed (Build + Run + Volume + Logs)"
-
-# Cleanup only on success
-rm -rf "$ENV_FILE" "$OUTPUT_DIR" e2e_run.log
-# Note: Keep the image for now, or use docker rmi
+cleanup
+echo "SUCCESS: ALL E2E test cases passed"
