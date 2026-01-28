@@ -4,11 +4,14 @@
 
 ## 核心技术
 - **容器化技术 (Containerization): Docker**
-  - 项目的核心是创建一个 Docker 镜像，用于封装和分发 `CloudflareSpeedTest` 工具。
+  - 使用 **Alpine Linux** 作为基础镜像，确保极致轻量。
+  - 实现多架构 (`amd64`, `arm64`) 构建兼容。
 
 ## 脚本与自动化 (Scripting & Automation)
 - **脚本语言 (Scripting Language): Shell Script**
-  - 将使用 Shell 脚本来处理自动化任务，例如：获取最新的 `CloudflareSpeedTest` 二进制文件、执行 Docker 构建命令以及管理定时任务。
+  - 使用 **Bash** 编写核心包装脚本。
+  - 集成 **jq** 和 **awk** 进行结果数据的处理与格式化筛选。
+  - 使用 **curl** 实现与 GitHub Gist API 的交互。
 
 ## 持续集成/持续部署 (CI/CD)
 - **CI/CD 工具: GitHub Actions**
