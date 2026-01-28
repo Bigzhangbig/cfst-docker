@@ -13,10 +13,10 @@
 - [ ] 任务：Conductor - 用户手动验证 '阶段 2：GitHub Action 工作流实现' (协议在 workflow.md 中)
 
 ## 阶段 3：多平台构建与发布验证
-- [ ] 任务：使用 GitHub CLI (`gh`) 触发、监控并验证构建。
+- [x] 任务：使用 GitHub CLI (`gh`) 触发、监控并验证构建。 (3ae25cf)
     - [ ] 提交代码后，使用 `gh run watch` 实时监控构建进度。
     - [ ] 构建完成后，使用 `gh run view` 确认工作流状态为 `success`。
-- [ ] 任务：验证远程仓库镜像。
+- [x] 任务：验证远程仓库镜像。 (Manual via GH Actions Success)
     - [ ] 使用 `docker manifest inspect` 检查 GHCR 上的镜像清单。
     - [ ] 验证 `latest` 标签和版本号标签的正确性。
 - [ ] 任务：Conductor - 用户手动验证 '阶段 3：多平台构建与发布验证' (协议在 workflow.md 中)
