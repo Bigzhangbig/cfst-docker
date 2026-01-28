@@ -10,6 +10,10 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
+# Install CloudflareSpeedTest (Local copy for stability during dev)
+COPY cfst /usr/local/bin/CloudflareSpeedTest
+RUN chmod +x /usr/local/bin/CloudflareSpeedTest
+
 # Set default shell
 SHELL ["/bin/bash", "-c"]
 
