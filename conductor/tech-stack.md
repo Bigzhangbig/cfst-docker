@@ -12,6 +12,7 @@
   - 使用 **Bash** 编写核心包装脚本。
   - 集成 **jq** 和 **awk** 进行结果数据的处理与格式化筛选。
   - 使用 **curl** 实现与 GitHub Gist API 的交互。
+  - 集成 **BusyBox crond** 实现轻量级定时任务调度。
 
 ## 持续集成/持续部署 (CI/CD)
 - **CI/CD 工具: GitHub Actions**
