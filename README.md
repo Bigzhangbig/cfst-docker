@@ -31,15 +31,26 @@
 ```env
 GIST_TOKEN=你的GitHub_Token
 GIST_ID=你的Gist_ID
-# 可选：自定义测速参数
-CFST_N=20
 ```
 
-### 2. 运行
-使用 Docker 启动：
+### 2. 环境变量说明
+你可以通过以下环境变量来自定义测速行为：
+
+| 变量 | 说明 | 默认值 |
+| :--- | :--- | :--- |
+| `CF_N` | 延迟测速的 IP 数量 | `20` |
+| `CF_T` | 每个 IP 的延迟测速次数 | `4` |
+| `CF_DN` | 延迟测速后，进行下载测速的 IP 数量 | `10` |
+| `CF_URL` | 自定义测速地址（用于下载测速） | 官方默认地址 |
+
+### 3. 运行
+使用 Docker 启动，建议挂载 `/app/data` 目录以持久化本地 `result.csv`：
 
 ```bash
-docker run -it --env-file .env zhang/cfst-docker
+docker run --rm \
+  --env-file .env \
+  -v $(pwd)/output:/app/data \
+  cfst-test
 ```
 
 ## 🤝 鸣谢
