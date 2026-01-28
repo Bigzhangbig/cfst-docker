@@ -2,13 +2,10 @@
 
 本计划旨在通过 GitHub Actions 实现 Docker 镜像的自动化多架构构建与发布。
 
-## 阶段 1：版本提取脚本与环境准备
+## 阶段 1：版本提取脚本与环境准备 [checkpoint: f2db129]
 - [x] 任务：创建或完善版本提取工具。 (5f87193)
-    - [ ] 编写测试验证脚本能否正确提取上游最新版本号（如 v2.2.5）。
-    - [ ] 确保 `scripts/install_cfst.sh` 或新脚本能向 GitHub Action 输出版本变量。
-- [ ] 任务：配置 GitHub 仓库权限。
-    - [ ] 验证 `GITHUB_TOKEN` 对 GHCR 的写入权限配置。
-- [ ] 任务：Conductor - 用户手动验证 '阶段 1：版本提取脚本与环境准备' (协议在 workflow.md 中)
+- [x] 任务：配置 GitHub 仓库权限。 (Manual)
+- [x] 任务：Conductor - 用户手动验证 '阶段 1：版本提取脚本与环境准备' (f2db129)
 
 ## 阶段 2：GitHub Action 工作流实现
 - [ ] 任务：编写 Docker 构建工作流文件。
