@@ -3,6 +3,13 @@ name: Docker Publish
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'Dockerfile'
+      - 'entrypoint.sh'
+      - 'scripts/**'
+      - 'ip.txt'
+      - 'ipv6.txt'
+      - '.github/workflows/docker-publish.yml'
 
 env:
   REGISTRY: ghcr.io
