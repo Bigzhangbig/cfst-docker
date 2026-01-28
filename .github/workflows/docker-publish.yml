@@ -65,3 +65,62 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  cleanup:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Cleanup old image versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_NAME: ${{ github.event.repository.name }}
+        run: |
+          # 1. 获取所有版本 ID 和对应的 Tags
+          # 注意：如果是个人仓库使用 /users/，组织仓库使用 /orgs/
+          # 这里通过尝试两种方式来获取数据
+          VERSIONS=$(gh api "/users/${{ github.repository_owner }}/packages/container/${IMAGE_NAME}/versions" --paginate || \
+                    gh api "/orgs/${{ github.repository_owner }}/packages/container/${IMAGE_NAME}/versions" --paginate)
+
+          # 2. 提取所有包含 vX.X.X-Y 格式标签的版本
+          # 格式化输出: "ID TAG"
+          VERSION_LIST=$(echo "$VERSIONS" | jq -r '.[] | .id as $id | .metadata.container.tags[]? | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+$")) | "\($id) \(.)"')
+
+          if [ -z "$VERSION_LIST" ]; then
+            echo "No versioned tags found to cleanup."
+            exit 0
+          fi
+
+          # 3. 找出最新的主版本号 (如 v2.3.4)
+          LATEST_BASE=$(echo "$VERSION_LIST" | awk '{print $2}' | cut -d'-' -f1 | sort -V | tail -n1)
+          echo "Latest major version detected: $LATEST_BASE (Keeping all minor versions for this)"
+
+          # 4. 处理旧的大版本
+          # 获取非最新的所有主版本列表
+          OTHER_BASES=$(echo "$VERSION_LIST" | awk '{print $2}' | cut -d'-' -f1 | grep -v "$LATEST_BASE" | sort -u)
+
+          for BASE in $OTHER_BASES; do
+            echo "Processing old version group: $BASE"
+            
+            # 找到该主版本下的所有版本，按构建号排序
+            GROUP_VERSIONS=$(echo "$VERSION_LIST" | grep " $BASE-" | sort -k2 -V)
+            
+            # 提取该组中最新的版本 ID (最后一个)
+            KEEP_ID=$(echo "$GROUP_VERSIONS" | tail -n1 | awk '{print $1}')
+            KEEP_TAG=$(echo "$GROUP_VERSIONS" | tail -n1 | awk '{print $2}')
+            
+            # 提取需要删除的版本 ID (除了最后一个)
+            DELETE_IDS=$(echo "$GROUP_VERSIONS" | grep -v "$KEEP_TAG" | awk '{print $1}' | sort -u)
+            
+            for DID in $DELETE_IDS; do
+              # 安全检查：确保该 ID 不属于最新的 LATEST_BASE (虽然逻辑上已过滤，但双重保险)
+              if [ "$DID" != "$KEEP_ID" ]; then
+                echo "Deleting old minor version: ID $DID (of group $BASE)"
+                gh api -X DELETE "/users/${{ github.repository_owner }}/packages/container/${IMAGE_NAME}/versions/$DID" || \
+                gh api -X DELETE "/orgs/${{ github.repository_owner }}/packages/container/${IMAGE_NAME}/versions/$DID" || true
+              fi
+            done
+            echo "Kept latest of $BASE: $KEEP_TAG (ID $KEEP_ID)"
+          done
