@@ -15,4 +15,6 @@
 
 ## 持续集成/持续部署 (CI/CD)
 - **CI/CD 工具: GitHub Actions**
-  - 将利用 GitHub Actions 建立一个自动化的工作流，用于构建、测试（如果适用）和发布 Docker 镜像到容器仓库。
+  - **自动化流水线:** 实现代码推送自动触发构建。
+  - **多架构编译:** 使用 **Docker Buildx** 和 **QEMU** 进行跨平台镜像合成。
+  - **镜像托管:** 使用 **GitHub Container Registry (GHCR)** 进行版本化管理。
