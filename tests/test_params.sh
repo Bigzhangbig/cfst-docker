@@ -22,6 +22,10 @@ if ! grep -q "ARGS:.*-n 20" speedtest.log; then
     echo "FAILED: Default -n 20 not found in speedtest.log"
     exit 1
 fi
+if ! grep -q "ARGS:.*-dn 20" speedtest.log; then
+    echo "FAILED: Default -dn 20 not found in speedtest.log"
+    exit 1
+fi
 
 # Test 2: Overriding with env vars
 echo "Testing overrides..."
