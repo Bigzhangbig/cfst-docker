@@ -6,9 +6,11 @@ REPO="XIU2/CloudflareSpeedTest"
 # Detect architecture
 ARCH_RAW=$(uname -m)
 case "$ARCH_RAW" in
-    x86_64)  ARCH="amd64" ;;
-    aarch64) ARCH="arm64" ;;
-    *)       echo "Unsupported architecture: $ARCH_RAW"; exit 1 ;;
+    x86_64)      ARCH="amd64" ;;
+    aarch64)     ARCH="arm64" ;;
+    armv7l|armv7) ARCH="armv7" ;;
+    i386|i686)   ARCH="386"   ;;
+    *)           echo "Unsupported architecture: $ARCH_RAW"; exit 1 ;;
 esac
 
 echo "Detected architecture: $ARCH"
