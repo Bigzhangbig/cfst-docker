@@ -23,12 +23,23 @@ EOF
 chmod +x mock_bin/curl
 export PATH="$(pwd)/mock_bin:$PATH"
 
-# Mock CloudflareSpeedTest to produce a result.csv in the expected directory
-# Since entrypoint.sh does 'cd data && CloudflareSpeedTest', we need to handle that.
+# Mock CloudflareSpeedTest to produce a result.csv in the specified path
 cat << 'EOF' > mock_bin/CloudflareSpeedTest
 #!/bin/bash
-echo "IP 地址,端口,数据中心,响应时间,下载速度 (MB/s),上载速度 (MB/s)" > result.csv
-echo "1.1.1.1,443,HKG,50.5,100.2,50.1" >> result.csv
+# Find the -o argument and write to that path
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -o)
+      OUT_FILE="$2"
+      shift; shift ;;
+    *)
+      shift ;;
+  esac
+done
+OUT_FILE=${OUT_FILE:-result.csv}
+mkdir -p "$(dirname "$OUT_FILE")"
+echo "IP 地址,端口,数据中心,响应时间,下载速度 (MB/s),上载速度 (MB/s)" > "$OUT_FILE"
+echo "1.1.1.1,443,HKG,50.5,100.2,50.1" >> "$OUT_FILE"
 echo "Mock Speedtest Finished"
 EOF
 chmod +x mock_bin/CloudflareSpeedTest

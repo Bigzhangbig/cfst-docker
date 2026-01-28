@@ -30,6 +30,7 @@ log_info "Starting Cloudflare Speed Test wrapper..."
 # Ensure data directory exists for mounting
 DATA_DIR="data"
 mkdir -p "$DATA_DIR"
+RESULT_FILE="$DATA_DIR/result.csv"
 
 # Parameters with defaults
 # CF_N: 测速数量 (default: 20)
@@ -49,15 +50,14 @@ fi
 # Placeholder for SpeedTest execution
 if command -v CloudflareSpeedTest > /dev/null; then
     log_info "Executing CloudflareSpeedTest with options: $OPTS"
-    # Run in data directory to ensure result.csv is placed there
-    (cd "$DATA_DIR" && CloudflareSpeedTest $OPTS)
+    # Specify output file in data directory
+    CloudflareSpeedTest $OPTS -o "$RESULT_FILE"
 else
     log_error "CloudflareSpeedTest binary not found in PATH"
     exit 1
 fi
 
 # Result extraction and Gist upload
-RESULT_FILE="$DATA_DIR/result.csv"
 if [ -f "$RESULT_FILE" ]; then
     # Extract the first result line for log summary
     BEST_RESULT=$(sed -n '2p' "$RESULT_FILE")
