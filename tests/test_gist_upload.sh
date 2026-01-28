@@ -11,18 +11,20 @@ echo "Running Red Stage: Testing result extraction and Gist upload..."
 mkdir -p mock_bin
 cat << 'EOF' > mock_bin/curl
 #!/bin/bash
-# If it's a POST request to Gists API, log the payload
+# If it's a Gists API call with data
 if [[ "$*" == *"api.github.com/gists"* ]] && [[ "$*" == *"-d"* ]]; then
-    echo "GIST_API_CALLED"
     echo "PAYLOAD: $@" > gist_payload.tmp
+    echo '{"html_url": "https://gist.github.com/test_gist_id", "status": "success"}'
+    exit 0
 fi
-# Execute real curl for other things (like fetching latest tag if needed)
+# Execute real curl for other things
 /usr/bin/curl "$@"
 EOF
 chmod +x mock_bin/curl
 export PATH="$(pwd)/mock_bin:$PATH"
 
-# Mock CloudflareSpeedTest to produce a result.csv
+# Mock CloudflareSpeedTest to produce a result.csv in the expected directory
+# Since entrypoint.sh does 'cd data && CloudflareSpeedTest', we need to handle that.
 cat << 'EOF' > mock_bin/CloudflareSpeedTest
 #!/bin/bash
 echo "IP 地址,端口,数据中心,响应时间,下载速度 (MB/s),上载速度 (MB/s)" > result.csv
@@ -36,24 +38,31 @@ export GIST_TOKEN="ghp_test_token"
 export GIST_ID="test_gist_id"
 
 # Run entrypoint
-bash "$ENTRYPOINT" > /dev/null 2>&1
+bash "$ENTRYPOINT"
 
-echo "Checking if result was extracted from CSV..."
+echo "Checking if result was placed in data/ directory..."
+if [ ! -f "data/result.csv" ]; then
+    echo "FAILED: data/result.csv not found"
+    exit 1
+fi
+
+echo "Checking if result was extracted from CSV for logging..."
 # The script should log the summary
 if ! grep -q "1.1.1.1" "$LOG_FILE"; then
     echo "FAILED: Result (1.1.1.1) not found in log"
     exit 1
 fi
 
-echo "Checking if Gist API was called..."
-if ! grep -q "GIST_API_CALLED" gist_payload.tmp 2>/dev/null; then
-    # Note: If GIST_TOKEN is dummy, the real curl might fail, 
-    # but our mock should have caught the call before execution.
-    if [ ! -f gist_payload.tmp ]; then
-        echo "FAILED: Gist API was not called"
-        exit 1
-    fi
+echo "Checking if Gist API was called with CSV content..."
+if [ ! -f gist_payload.tmp ]; then
+    echo "FAILED: Gist API was not called (gist_payload.tmp missing)"
+    exit 1
 fi
 
-echo "SUCCESS: Result extraction and Gist upload logic verified"
-rm -rf mock_bin "$LOG_FILE" "$RESULT_CSV" gist_payload.tmp
+if ! grep -q "IP 地址,端口,数据中心" gist_payload.tmp 2>/dev/null; then
+    echo "FAILED: Gist payload does not contain CSV header"
+    exit 1
+fi
+
+echo "SUCCESS: Result directory and full CSV upload verified"
+rm -rf mock_bin "$LOG_FILE" data gist_payload.tmp
