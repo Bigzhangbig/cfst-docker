@@ -28,11 +28,11 @@ log_error() { log "ERROR" "$1"; }
 log_info "Starting Cloudflare Speed Test wrapper..."
 
 # Parameters with defaults
-# CF_N: 测速数量 (default: 200)
+# CF_N: 测速数量 (default: 20)
 # CF_T: 测试线程 (default: 4)
 # CF_DN: 下载测试数量 (default: 10)
 # CF_URL: 自定义测速地址
-N=${CF_N:-200}
+N=${CF_N:-20}
 T=${CF_T:-4}
 DN=${CF_DN:-10}
 URL=${CF_URL:-""}

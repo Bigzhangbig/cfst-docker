@@ -17,9 +17,9 @@ export PATH="$(pwd)/mock_bin:$PATH"
 # Test 1: Default values (no env vars set)
 echo "Testing defaults..."
 OUTPUT_DEFAULT=$(bash "$ENTRYPOINT" 2>&1)
-# We expect some default args, e.g., -n 200 -t 4
-if ! echo "$OUTPUT_DEFAULT" | grep -q "ARGS:.*-n 200"; then
-    echo "FAILED: Default -n 200 not found"
+# We expect some default args, e.g., -n 20 -t 4
+if ! echo "$OUTPUT_DEFAULT" | grep -q "ARGS:.*-n 20"; then
+    echo "FAILED: Default -n 20 not found"
     exit 1
 fi
 
