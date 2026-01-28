@@ -1,0 +1,8 @@
+{
+  "track_id": "docker_gist_oneshot_20260128",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-28T14:30:00Z",
+  "updated_at": "2026-01-28T14:30:00Z",
+  "description": "构建一个docker镜像，实现单次测速和上传gist"
+}
