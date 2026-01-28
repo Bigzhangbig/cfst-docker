@@ -151,36 +151,80 @@ run_speedtest() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
+    # Internal flag for cron jobs
+
+    if [ "
+" == "--cron-job" ]; then
+
+        if ! run_speedtest; then
+
+            log_error "Cron job failed. Terminating container."
+
+            # Try to kill PID 1 (container) or the main script process
+
+            kill 1 2>/dev/null || exit 1
+
+        fi
+
+        exit 0
+
+    fi
+
+
+
     if [ -n "$CRON" ]; then
 
         log_info "Entering Cron mode with schedule: $CRON"
 
-        # Placeholder for actual crond start
+        
 
-        sleep infinity
+        # 1. Setup crontab
 
-        elif [ -n "$LOOP_INTERVAL" ]; then
+        # We use the absolute path to this script for the cron job
 
-            log_info "Entering Loop mode with interval: $LOOP_INTERVAL seconds"
+        SCRIPT_PATH=$(realpath "$0")
 
-            while true; do
+        echo "$CRON $SCRIPT_PATH --cron-job >> $LOG_FILE 2>&1" > /tmp/crontab.tmp
 
-                run_speedtest
+        crontab /tmp/crontab.tmp
 
-                log_info "Sleeping for $LOOP_INTERVAL seconds before next run..."
+        rm /tmp/crontab.tmp
 
-                sleep "$LOOP_INTERVAL"
+        
 
-            done
+        log_info "Crontab generated successfully."
 
-        else
+        
 
-    
+        # 2. Start crond in foreground
 
+        log_info "Starting crond..."
+
+        exec crond -f -l 2
+
+    elif [ -n "$LOOP_INTERVAL" ]; then
+
+
+        log_info "Entering Loop mode with interval: $LOOP_INTERVAL seconds"
+        round=1
+        while true; do
+            log_info "========================================================"
+            log_info "Starting Round $round at $(date '+%Y-%m-%d %H:%M:%S')"
+            log_info "========================================================"
+            if ! run_speedtest; then
+                log_error "Critical error detected in Round $round. Stopping execution."
+                exit 1
+            fi
+            log_info "Round $round finished. Sleeping for $LOOP_INTERVAL seconds..."
+            round=$((round + 1))
+            sleep "$LOOP_INTERVAL"
+        done
+    else
         log_info "Running in One-shot mode."
-
-        run_speedtest
-
+        if ! run_speedtest; then
+            log_error "Speed test failed in One-shot mode."
+            exit 1
+        fi
     fi
 
 fi

@@ -22,6 +22,15 @@ COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Create data directory for volume mounting
+
 RUN mkdir -p /app/data
+
+
+
+HEALTHCHECK --interval=5m --timeout=3s \
+
+  CMD pgrep -f entrypoint.sh || exit 1
+
+
 
 ENTRYPOINT ["/app/entrypoint.sh"]
