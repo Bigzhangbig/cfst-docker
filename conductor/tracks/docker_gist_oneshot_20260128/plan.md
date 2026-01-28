@@ -15,9 +15,9 @@
 - [x] 任务：开发带日志功能的包装脚本 `entrypoint.sh` (aa6103c)
     - [x] 编写测试脚本验证日志的多路输出 (console & .log)
     - [x] 实现日志级别 (INFO, WARN, ERROR) 和自动清空逻辑
-- [ ] 任务：实现参数解析与默认值逻辑
-    - [ ] 编写测试验证环境变量对 `CloudflareSpeedTest` 参数的覆盖
-    - [ ] 实现脚本中的参数组装逻辑
+- [x] 任务：实现参数解析与默认值逻辑 (231a6ce)
+    - [x] 编写测试验证环境变量对 `CloudflareSpeedTest` 参数的覆盖
+    - [x] 实现脚本中的参数组装逻辑
 - [ ] 任务：Conductor - 用户手动验证 '阶段 2：核心脚本开发 (TDD 驱动)' (协议在 workflow.md 中)
 
 ## 阶段 3：Gist 集成与结果处理
