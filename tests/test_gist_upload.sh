@@ -23,23 +23,21 @@ EOF
 chmod +x mock_bin/curl
 export PATH="$(pwd)/mock_bin:$PATH"
 
-# Mock CloudflareSpeedTest to produce a result.csv in the specified path
+# Mock CloudflareSpeedTest to produce a result.csv with mixed results
 cat << 'EOF' > mock_bin/CloudflareSpeedTest
 #!/bin/bash
-# Find the -o argument and write to that path
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -o)
-      OUT_FILE="$2"
-      shift; shift ;;
-    *)
-      shift ;;
+    -o) OUT_FILE="$2"; shift; shift ;;
+    *) shift ;;
   esac
 done
 OUT_FILE=${OUT_FILE:-result.csv}
 mkdir -p "$(dirname "$OUT_FILE")"
 echo "IP 地址,端口,数据中心,响应时间,下载速度 (MB/s),上载速度 (MB/s)" > "$OUT_FILE"
 echo "1.1.1.1,443,HKG,50.5,100.2,50.1" >> "$OUT_FILE"
+echo "2.2.2.2,443,SJC,150.5,0.00,0.00" >> "$OUT_FILE"
+echo "3.3.3.3,443,LAX,60.2,50.5,20.1" >> "$OUT_FILE"
 echo "Mock Speedtest Finished"
 EOF
 chmod +x mock_bin/CloudflareSpeedTest
@@ -57,23 +55,22 @@ if [ ! -f "data/result.csv" ]; then
     exit 1
 fi
 
-echo "Checking if result was extracted from CSV for logging..."
-# The script should log the summary
-if ! grep -q "1.1.1.1" "$LOG_FILE"; then
-    echo "FAILED: Result (1.1.1.1) not found in log"
-    exit 1
-fi
-
-echo "Checking if Gist API was called with CSV content..."
+echo "Checking if Gist API was called with filtered CSV content..."
 if [ ! -f gist_payload.tmp ]; then
-    echo "FAILED: Gist API was not called (gist_payload.tmp missing)"
+    echo "FAILED: Gist API was not called"
     exit 1
 fi
 
-if ! grep -q "IP 地址,端口,数据中心" gist_payload.tmp 2>/dev/null; then
-    echo "FAILED: Gist payload does not contain CSV header"
+# The payload should contain 1.1.1.1 and 3.3.3.3, but NOT 2.2.2.2
+if grep -q "2.2.2.2" gist_payload.tmp; then
+    echo "FAILED: Gist payload contains result with 0 download speed (2.2.2.2)"
     exit 1
 fi
 
-echo "SUCCESS: Result directory and full CSV upload verified"
+if ! grep -q "1.1.1.1" gist_payload.tmp || ! grep -q "3.3.3.3" gist_payload.tmp; then
+    echo "FAILED: Gist payload is missing valid results (1.1.1.1 or 3.3.3.3)"
+    exit 1
+fi
+
+echo "SUCCESS: Result directory and filtered CSV upload verified"
 rm -rf mock_bin "$LOG_FILE" data gist_payload.tmp

@@ -69,30 +69,35 @@ if [ -f "$RESULT_FILE" ]; then
         
         # Upload to Gist if credentials provided
         if [ -n "$GIST_TOKEN" ] && [ -n "$GIST_ID" ]; then
-            log_info "Uploading result.csv to Gist $GIST_ID..."
+            log_info "Uploading filtered results (with download speed) to Gist $GIST_ID..."
             
-            # Read full content of result.csv
-            CSV_CONTENT=$(cat "$RESULT_FILE")
+            # Filter CSV to include only header and rows where download speed (5th column) > 0
+            # Use awk to handle the filtering
+            CSV_CONTENT_FOR_GIST=$(awk -F, 'NR==1 || ($5 != "" && $5 > 0)' "$RESULT_FILE")
             FILENAME="result.csv"
             
-            JSON_PAYLOAD=$(jq -n \
-                --arg fn "$FILENAME" \
-                --arg cont "$CSV_CONTENT" \
-                '{files: {($fn): {content: $cont}}}')
-            
-            RESPONSE=$(curl -s -X PATCH \
-                -H "Authorization: token $GIST_TOKEN" \
-                -H "Accept: application/vnd.github.v3+json" \
-                -d "$JSON_PAYLOAD" \
-                "https://api.github.com/gists/$GIST_ID")
-            
-            GIST_URL=$(echo "$RESPONSE" | jq -r '.html_url // empty')
-            
-            if [ -n "$GIST_URL" ]; then
-                log_info "Successfully uploaded to Gist: $GIST_URL"
+            if [ -n "$CSV_CONTENT_FOR_GIST" ]; then
+                JSON_PAYLOAD=$(jq -n \
+                    --arg fn "$FILENAME" \
+                    --arg cont "$CSV_CONTENT_FOR_GIST" \
+                    '{files: {($fn): {content: $cont}}}')
+                
+                RESPONSE=$(curl -s -X PATCH \
+                    -H "Authorization: token $GIST_TOKEN" \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    -d "$JSON_PAYLOAD" \
+                    "https://api.github.com/gists/$GIST_ID")
+                
+                GIST_URL=$(echo "$RESPONSE" | jq -r '.html_url // empty')
+                
+                if [ -n "$GIST_URL" ]; then
+                    log_info "Successfully uploaded to Gist: $GIST_URL"
+                else
+                    log_error "Failed to upload to Gist. Check your GIST_TOKEN and GIST_ID."
+                    log_warn "API Response: $(echo "$RESPONSE" | jq -c '.' 2>/dev/null || echo "$RESPONSE")"
+                fi
             else
-                log_error "Failed to upload to Gist. Check your GIST_TOKEN and GIST_ID."
-                log_warn "API Response: $(echo "$RESPONSE" | jq -c '.' 2>/dev/null || echo "$RESPONSE")"
+                log_warn "No results with download speed found to upload."
             fi
         else
             log_warn "GIST_TOKEN or GIST_ID not set, skipping Gist upload."
