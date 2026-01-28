@@ -27,6 +27,8 @@ fi
 echo "Testing overrides..."
 export CF_N=500
 export CF_T=10
+export CF_HTTPING=true
+export CF_SL=5.5
 OUTPUT_OVERRIDE=$(bash "$ENTRYPOINT" 2>&1)
 if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-n 500"; then
     echo "FAILED: Override -n 500 not found"
@@ -34,6 +36,14 @@ if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-n 500"; then
 fi
 if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-t 10"; then
     echo "FAILED: Override -t 10 not found"
+    exit 1
+fi
+if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-httping"; then
+    echo "FAILED: Override -httping not found"
+    exit 1
+fi
+if ! echo "$OUTPUT_OVERRIDE" | grep -q "ARGS:.*-sl 5.5"; then
+    echo "FAILED: Override -sl 5.5 not found"
     exit 1
 fi
 

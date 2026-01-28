@@ -41,11 +41,37 @@ N=${CF_N:-20}
 T=${CF_T:-4}
 DN=${CF_DN:-10}
 URL=${CF_URL:-""}
+DT=${CF_DT:-""}
+TP=${CF_TP:-""}
+HTTPING=${CF_HTTPING:-""}
+HTTPING_CODE=${CF_HTTPING_CODE:-""}
+CFCOLO=${CF_COLO:-""}
+TL=${CF_TL:-""}
+TLL=${CF_TLL:-""}
+TLR=${CF_TLR:-""}
+SL=${CF_SL:-""}
+P=${CF_P:-""}
+F=${CF_F:-""}
+IP_DATA=${CF_IP:-""}
+DD=${CF_DD:-""}
+ALLIP=${CF_ALLIP:-""}
 
 OPTS="-n $N -t $T -dn $DN"
-if [ -n "$URL" ]; then
-    OPTS="$OPTS -url $URL"
-fi
+[ -n "$URL" ] && OPTS="$OPTS -url $URL"
+[ -n "$DT" ] && OPTS="$OPTS -dt $DT"
+[ -n "$TP" ] && OPTS="$OPTS -tp $TP"
+[ "$HTTPING" = "true" ] && OPTS="$OPTS -httping"
+[ -n "$HTTPING_CODE" ] && OPTS="$OPTS -httping-code $HTTPING_CODE"
+[ -n "$CFCOLO" ] && OPTS="$OPTS -cfcolo $CFCOLO"
+[ -n "$TL" ] && OPTS="$OPTS -tl $TL"
+[ -n "$TLL" ] && OPTS="$OPTS -tll $TLL"
+[ -n "$TLR" ] && OPTS="$OPTS -tlr $TLR"
+[ -n "$SL" ] && OPTS="$OPTS -sl $SL"
+[ -n "$P" ] && OPTS="$OPTS -p $P"
+[ -n "$F" ] && OPTS="$OPTS -f $F"
+[ -n "$IP_DATA" ] && OPTS="$OPTS -ip $IP_DATA"
+[ "$DD" = "true" ] && OPTS="$OPTS -dd"
+[ "$ALLIP" = "true" ] && OPTS="$OPTS -allip"
 
 # Placeholder for SpeedTest execution
 if command -v CloudflareSpeedTest > /dev/null; then
