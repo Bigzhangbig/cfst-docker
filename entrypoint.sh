@@ -76,8 +76,12 @@ OPTS="-n $N -t $T -dn $DN"
 # Placeholder for SpeedTest execution
 if command -v CloudflareSpeedTest > /dev/null; then
     log_info "Executing CloudflareSpeedTest with options: $OPTS"
-    # Specify output file in data directory
-    CloudflareSpeedTest $OPTS -o "$RESULT_FILE"
+    log_info "Running speed test, please wait (detailed logs in $LOG_FILE)..."
+    # Specify output file in data directory and redirect stdout/stderr to log file
+    if ! CloudflareSpeedTest $OPTS -o "$RESULT_FILE" >> "$LOG_FILE" 2>&1; then
+        log_error "CloudflareSpeedTest failed. Check $LOG_FILE for details."
+        exit 1
+    fi
 else
     log_error "CloudflareSpeedTest binary not found in PATH"
     exit 1
