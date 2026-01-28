@@ -122,14 +122,22 @@ if [ -f "$RESULT_FILE" ]; then
         
         # Upload to Gist if credentials provided
         if [ -n "$GIST_TOKEN" ] && [ -n "$GIST_ID" ]; then
-            log_info "Uploading filtered results (with download speed) to Gist $GIST_ID..."
+            log_info "Filtering top 20 results by lowest latency with speed > 0..."
             
-            # Filter CSV to include only header and rows where download speed (5th column) > 0
-            # Use awk to handle the filtering
-            CSV_CONTENT_FOR_GIST=$(awk -F, 'NR==1 || ($5 != "" && $5 > 0)' "$RESULT_FILE")
-            FILENAME="result.csv"
+            # 1. Get Header
+            HEADER=$(head -n 1 "$RESULT_FILE")
             
-            if [ -n "$CSV_CONTENT_FOR_GIST" ]; then
+            # 2. Filter rows where download speed (col 6) > 0, 
+            #    sort by latency (col 5) numerically, and take top 20.
+            # We use tail to skip header in the process, then re-attach it.
+            DATA_ROWS=$(tail -n +2 "$RESULT_FILE" | awk -F, '$6 > 0' | sort -t, -k5,5n | head -n 20)
+            
+            if [ -n "$DATA_ROWS" ]; then
+                CSV_CONTENT_FOR_GIST=$(printf "%s\n%s" "$HEADER" "$DATA_ROWS")
+                FILENAME="result.csv"
+                
+                log_info "Uploading filtered top 20 results to Gist $GIST_ID..."
+                
                 JSON_PAYLOAD=$(jq -n \
                     --arg fn "$FILENAME" \
                     --arg cont "$CSV_CONTENT_FOR_GIST" \
