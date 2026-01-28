@@ -1,0 +1,14 @@
+# Gemini & Conductor
+.gemini/
+conductor/setup_state.json
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
