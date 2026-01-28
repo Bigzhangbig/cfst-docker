@@ -22,8 +22,23 @@ log_info() { log "INFO" "$1"; }
 log_warn() { log "WARN" "$1"; }
 log_error() { log "ERROR" "$1"; }
 
+# Simple log rotation
+rotate_logs() {
+    if [ -f "$LOG_FILE" ]; then
+        local line_count=$(wc -l < "$LOG_FILE")
+        if [ "$line_count" -gt 1000 ]; then
+            log_info "Log rotation: Truncating $LOG_FILE (Current lines: $line_count)"
+            local tmp_log=$(mktemp)
+            tail -n 1000 "$LOG_FILE" > "$tmp_log"
+            cat "$tmp_log" > "$LOG_FILE"
+            rm "$tmp_log"
+        fi
+    fi
+}
+
 # Core Speed Test Function
 run_speedtest() {
+    rotate_logs
     log_info "Starting Cloudflare Speed Test execution..."
 
     # Parameters with defaults
@@ -144,15 +159,23 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
         sleep infinity
 
-    elif [ -n "$LOOP_INTERVAL" ]; then
+        elif [ -n "$LOOP_INTERVAL" ]; then
 
-        log_info "Entering Loop mode with interval: $LOOP_INTERVAL seconds"
+            log_info "Entering Loop mode with interval: $LOOP_INTERVAL seconds"
 
-        # Placeholder for loop implementation
+            while true; do
 
-        sleep infinity
+                run_speedtest
 
-    else
+                log_info "Sleeping for $LOOP_INTERVAL seconds before next run..."
+
+                sleep "$LOOP_INTERVAL"
+
+            done
+
+        else
+
+    
 
         log_info "Running in One-shot mode."
 
