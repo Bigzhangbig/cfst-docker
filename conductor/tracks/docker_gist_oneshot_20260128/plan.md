@@ -20,7 +20,7 @@
     - [x] 实现脚本中的参数组装逻辑
 - [x] 任务：Conductor - 用户手动验证 '阶段 2：核心脚本开发 (TDD 驱动)' (f682e3f)
 
-## 阶段 3：Gist 集成与结果处理
+## 阶段 3：Gist 集成与结果处理 [checkpoint: ba3dfa2]
 - [x] 任务：实现结果提取与 Gist 上传逻辑 (7b190eb)
     - [x] 编写测试验证从测速结果提取数据的正确性
     - [x] 实现使用 `curl` 和 `jq` 调用 GitHub Gist API 的逻辑
