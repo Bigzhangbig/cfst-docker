@@ -36,9 +36,16 @@ RUN_COUNT=$(cat $MOCK_RAN_FILE 2>/dev/null || echo 0)
 echo "Total mock runs: $RUN_COUNT"
 
 if [ "$RUN_COUNT" -ge 2 ]; then
-    echo "SUCCESS: Loop logic executed speedtest multiple times"
-    cleanup
-    exit 0
+    if grep -q "Starting Round 1" loop_test.log && grep -q "Starting Round 2" loop_test.log; then
+        echo "SUCCESS: Loop logic executed multiple times with round indicators"
+        cleanup
+        exit 0
+    else
+        echo "FAILED: Round indicators not found in log"
+        cat loop_test.log
+        cleanup
+        exit 1
+    fi
 else
     echo "FAILED: Loop logic did not execute multiple times (Runs: $RUN_COUNT)"
     cleanup
