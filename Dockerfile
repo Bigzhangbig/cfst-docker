@@ -13,9 +13,10 @@ WORKDIR /app
 # Install CloudflareSpeedTest (Local copy for stability during dev)
 COPY cfst /usr/local/bin/CloudflareSpeedTest
 RUN chmod +x /usr/local/bin/CloudflareSpeedTest
+COPY ip.txt ipv6.txt /app/
 
-# Set default shell
-SHELL ["/bin/bash", "-c"]
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-CMD ["bash"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
