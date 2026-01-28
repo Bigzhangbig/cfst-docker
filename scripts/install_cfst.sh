@@ -13,9 +13,9 @@ esac
 
 echo "Detected architecture: $ARCH"
 echo "Fetching latest release for $REPO..."
-LATEST_TAG=$(curl --retry 5 -s "https://api.github.com/repos/$REPO/releases/latest" | jq -r '.tag_name')
+LATEST_TAG=$(bash "$(dirname "$0")/get_version.sh")
 
-if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" == "null" ]; then
+if [ -z "$LATEST_TAG" ]; then
     echo "Failed to fetch latest tag"
     exit 1
 fi
